@@ -22,9 +22,8 @@ contract FundCreators {
         string name;
         string country;
         string img;
-        string description;
+        string about;
         string emailId;
-        string youtubeAddress;
         string instagram;
     }
 
@@ -47,30 +46,18 @@ contract FundCreators {
     event CreatorPaid(address indexed send, address indexed receiver);
 
     /* modifer*/
-    modifier isUser() {
-        require(
-            addressToUser[msg.sender].walletAddress != address(0),
-            "Register the user"
-        );
-        _;
-    }
+    // modifier isUser() {
+    //     require(
+    //         addressToUser[msg.sender].walletAddress != address(0),
+    //         "Register the user"
+    //     );
+    //     _;
+    // }
 
     function createUser(string memory _name) public returns (bool) {
-        require(
-            addressToUser[msg.sender].walletAddress == address(0),
-            "Already a existing user"
-        );
+        require(addressToUser[msg.sender].walletAddress == address(0), "Already a existing user");
         address payable walletAdd = payable(msg.sender);
-        addressToUser[msg.sender] = User(
-            walletAdd,
-            _name,
-            false,
-            false,
-            0,
-            0,
-            0,
-            0
-        );
+        addressToUser[msg.sender] = User(walletAdd, _name, false, false, 0, 0, 0, 0);
         usersList.push(msg.sender);
         emit NewUserCreated(msg.sender);
         return true;
@@ -80,42 +67,26 @@ contract FundCreators {
         string memory _name,
         string memory _country,
         string memory _img,
-        string memory _description,
+        string memory _about,
         string memory _emailId,
-        string memory _youtubeAdd,
         string memory _instagram
-    ) public isUser returns (bool) {
+    ) public returns (bool) {
         User storage user = addressToUser[msg.sender];
         if (user.isCreator == false) {
             creatorsList.push(msg.sender);
         }
+        address payable walletAdd = payable(msg.sender);
+        user.walletAddress = walletAdd;
+        user.name = _name;
         user.isCreator = true;
-        addressToCreator[msg.sender] = Creator(
-            _name,
-            _country,
-            _img,
-            _description,
-            _emailId,
-            _youtubeAdd,
-            _instagram
-        );
+        addressToCreator[msg.sender] = Creator(_name, _country, _img, _about, _emailId, _instagram);
         emit CreatorUpdatedOrCreated(msg.sender);
         return true;
     }
 
-    function donateCreator(address payable _creator)
-        public
-        payable
-        returns (bool)
-    {
-        require(
-            addressToUser[_creator].isCreator == true,
-            "User is not a creator"
-        );
-        require(
-            addressToUser[_creator].isDisabled == false,
-            "Creators is disabled"
-        );
+    function donateCreator(address payable _creator) public payable returns (bool) {
+        require(addressToUser[_creator].isCreator == true, "User is not a creator");
+        require(addressToUser[_creator].isDisabled == false, "Creators is disabled");
         require(msg.value >= s_minFundAmount, "Donation amount too low");
         (bool success, ) = _creator.call{value: msg.value}("");
         if (success) {
@@ -146,11 +117,7 @@ contract FundCreators {
         return addressToUser[_user];
     }
 
-    function getCreators(address _creator)
-        public
-        view
-        returns (Creator memory)
-    {
+    function getCreators(address _creator) public view returns (Creator memory) {
         return addressToCreator[_creator];
     }
 
@@ -158,19 +125,11 @@ contract FundCreators {
         return creatorsList;
     }
 
-    function getAmountFundedToCreator(address _creator)
-        public
-        view
-        returns (uint256)
-    {
+    function getAmountFundedToCreator(address _creator) public view returns (uint256) {
         return s_sentFundsList[msg.sender][_creator];
     }
 
-    function getAmountReceivedByCreator(address _funder)
-        public
-        view
-        returns (uint256)
-    {
+    function getAmountReceivedByCreator(address _funder) public view returns (uint256) {
         require(addressToUser[msg.sender].isCreator == true, "Not a creator");
         return s_receivedFundsList[msg.sender][_funder];
     }

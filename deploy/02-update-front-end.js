@@ -1,8 +1,8 @@
 const fs = require("fs")
 const { network } = require("hardhat")
 
-const frontEndContractsFile = "../donationApp_client/src/constants/contractAddresses.json"
-const frontEndAbiFile = "../donationApp_client/src/constants/abi.json"
+const frontEndContractsFile = "../donation_dapp_client/src/constants/contractAddresses.json"
+const frontEndAbiFile = "../donation_dapp_client/src/constants/abi.json"
 
 module.exports = async () => {
     if (process.env.UPDATE_FRONT_END) {
